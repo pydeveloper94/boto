@@ -4,12 +4,14 @@ import boto.beanstalk.response
 from boto.exception import BotoServerError
 import boto.beanstalk.exception as exception
 
+import sys
 
 def beanstalk_wrapper(func, name):
     def _wrapped_low_level_api(*args, **kwargs):
         try:
             response = func(*args, **kwargs)
-        except BotoServerError, e:
+        except BotoServerError:
+            _, e, _ = sys.exc_info() # look at http://bit.ly/1suvTkX
             raise exception.simple(e)
         # Turn 'this_is_a_function_name' into 'ThisIsAFunctionNameResponse'.
         cls_name = ''.join([part.capitalize() for part in name.split('_')]) + 'Response'
