@@ -19,9 +19,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-import uuid
 import base64
+import six
 import time
+import uuid
 from boto.compat import json
 from boto.cloudfront.identity import OriginAccessIdentity
 from boto.cloudfront.object import Object, StreamingObject
@@ -665,7 +666,7 @@ class Distribution(object):
             raise ValueError("You must specify one of private_key_file or private_key_string")
         # If private_key_file is a file name, open it and read it
         if private_key_string is None:
-            if isinstance(private_key_file, basestring):
+            if isinstance(private_key_file, six.string_types):
                 with open(private_key_file, 'r') as file_handle:
                     private_key_string = file_handle.read()
             # Otherwise, treat it like a file
