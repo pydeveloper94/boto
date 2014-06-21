@@ -20,8 +20,9 @@
 # IN THE SOFTWARE.
 #
 
-import xml.sax
+import six
 import time
+import xml.sax
 import boto
 from boto.connection import AWSAuthConnection
 from boto import handler
@@ -33,7 +34,6 @@ from boto.cloudfront.identity import OriginAccessIdentityConfig
 from boto.cloudfront.invalidation import InvalidationBatch, InvalidationSummary, InvalidationListResultSet
 from boto.resultset import ResultSet
 from boto.cloudfront.exception import CloudFrontServerError
-
 
 class CloudFrontConnection(AWSAuthConnection):
 
@@ -54,7 +54,7 @@ class CloudFrontConnection(AWSAuthConnection):
 
     def get_etag(self, response):
         response_headers = response.msg
-        for key in response_headers.keys():
+        for key in six.iterkeys(response_headers):
             if key.lower() == 'etag':
                 return response_headers[key]
         return None
@@ -90,7 +90,7 @@ class CloudFrontConnection(AWSAuthConnection):
             raise CloudFrontServerError(response.status, response.reason, body)
         d = dist_class(connection=self)
         response_headers = response.msg
-        for key in response_headers.keys():
+        for key in six.iterkeys(response_headers):
             if key.lower() == 'etag':
                 d.etag = response_headers[key]
         h = handler.XmlHandler(d, self)
@@ -316,7 +316,7 @@ class CloudFrontConnection(AWSAuthConnection):
             params['MaxItems'] = max_items
         if params:
             uri += '?%s=%s' % params.popitem()
-            for k, v in params.items():
+            for k, v in six.iteritems(params):
                 uri += '&%s=%s' % (k, v)
         tags=[('InvalidationSummary', InvalidationSummary)]
         rs_class = InvalidationListResultSet
