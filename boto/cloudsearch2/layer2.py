@@ -22,6 +22,8 @@
 # IN THE SOFTWARE.
 #
 
+import six
+
 from .layer1 import CloudSearchConnection
 from .domain import Domain
 
@@ -33,7 +35,7 @@ class Layer2(object):
                  host=None, debug=0, session_token=None, region=None,
                  validate_certs=True):
 
-        if type(region) in [str, unicode]:
+        if isinstance(region, six.string_types):
             import boto.cloudsearch2
             for region_info in boto.cloudsearch2.regions():
                 if region_info.name == region:

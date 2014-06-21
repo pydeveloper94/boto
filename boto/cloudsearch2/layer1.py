@@ -25,6 +25,8 @@ try:
 except ImportError:
     import simplejson as json
 
+import six
+
 import boto
 from boto.connection import AWSQueryConnection
 from boto.regioninfo import RegionInfo
@@ -759,9 +761,9 @@ class CloudSearchConnection(AWSQueryConnection):
         :type value: any
         :param value: The value to serialize
         """
-        for k, v in value.items():
+        for k, v in six.iteritems(value):
             if isinstance(v, dict):
-                for k2, v2 in v.items():
+                for k2, v2 in six.iteritems(v):
                     self.build_complex_param(params, label + '.' + k, v)
             elif isinstance(v, bool):
                 params['%s.%s' % (label, k)] = v and 'true' or 'false'

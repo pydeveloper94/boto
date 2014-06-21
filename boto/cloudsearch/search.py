@@ -22,6 +22,8 @@
 # IN THE SOFTWARE.
 #
 from math import ceil
+import six
+import sys
 import time
 import boto
 from boto.compat import json
@@ -52,9 +54,9 @@ class SearchResults(object):
 
         self.facets = {}
         if 'facets' in attrs:
-            for (facet, values) in attrs['facets'].iteritems():
+            for (facet, values) in six.iteritems(attrs['facets']):
                 if 'constraints' in values:
-                    self.facets[facet] = dict((k, v) for (k, v) in map(lambda x: (x['value'], x['count']), values['constraints']))
+                    self.facets[facet] = dict((k, v) for (k, v) in [(x['value'], x['count']) for x in values['constraints']])
 
         self.num_pages_needed = ceil(self.hits / self.query.real_size)
 
@@ -129,19 +131,19 @@ class Query(object):
             params['facet'] = ','.join(self.facet)
 
         if self.facet_constraints:
-            for k, v in self.facet_constraints.iteritems():
+            for k, v in six.iteritems(self.facet_constraints):
                 params['facet-%s-constraints' % k] = v
 
         if self.facet_sort:
-            for k, v in self.facet_sort.iteritems():
+            for k, v in six.iteritems(self.facet_sort):
                 params['facet-%s-sort' % k] = v
 
         if self.facet_top_n:
-            for k, v in self.facet_top_n.iteritems():
+            for k, v in six.iteritems(self.facet_top_n):
                 params['facet-%s-top-n' % k] = v
 
         if self.t:
-            for k, v in self.t.iteritems():
+            for k, v in six.iteritems(self.t):
                 params['t-%s' % k] = v
         return params
 
@@ -290,7 +292,8 @@ class SearchConnection(object):
         r = requests.get(url, params=params)
         try:
             data = json.loads(r.content)
-        except ValueError, e:
+        except ValueError:
+            _, e, _ = sys.exc_info()
             if r.status_code == 403:
                 msg = ''
                 import re

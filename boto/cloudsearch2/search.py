@@ -22,6 +22,8 @@
 #
 import json
 from math import ceil
+import six
+import sys
 import boto
 from boto.compat import json
 import requests
@@ -52,9 +54,9 @@ class SearchResults(object):
 
         self.facets = {}
         if 'facets' in attrs:
-            for (facet, values) in attrs['facets'].iteritems():
+            for (facet, values) in six.iteritems(attrs['facets']):
                 if 'buckets' in values:
-                    self.facets[facet] = dict((k, v) for (k, v) in map(lambda x: (x['value'], x['count']), values.get('buckets', [])))
+                    self.facets[facet] = dict((k, v) for (k, v) in [(x['value'], x['count']) for x in values.get('buckets', [])])
 
         self.num_pages_needed = ceil(self.hits / self.query.real_size)
 
@@ -123,17 +125,17 @@ class Query(object):
             params['fq'] = self.fq
 
         if self.expr:
-            for k, v in self.expr.iteritems():
+            for k, v in six.iteritems(self.expr):
                 params['expr.%s' % k] = v
 
         if self.facet:
-            for k, v in self.facet.iteritems():
-                if type(v) not in [str, unicode]:
+            for k, v in six.iteritems(self.facet):
+                if not isinstance(v, six.string_types):
                     v = json.dumps(v)
                 params['facet.%s' % k] = v
 
         if self.highlight:
-            for k, v in self.highlight.iteritems():
+            for k, v in six.iteritems(self.highlight):
                 params['highlight.%s' % k] = v
 
         if self.options:
@@ -283,7 +285,8 @@ class SearchConnection(object):
         r = self.session.get(url, params=params)
         try:
             data = json.loads(r.content)
-        except ValueError, e:
+        except ValueError:
+            _, e, _ = sys.exc_info()
             if r.status_code == 403:
                 msg = ''
                 import re
