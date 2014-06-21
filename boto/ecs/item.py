@@ -19,7 +19,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-
+import six
 import xml.sax
 import cgi
 from StringIO import StringIO
@@ -35,7 +35,7 @@ class ResponseGroup(xml.sax.ContentHandler):
         self._nodename = nodename
         self._nodepath = []
         self._curobj = None
-        self._xml = StringIO()
+        self._xml = six.StringIO()
 
     def __repr__(self):
         return '<%s: %s>' % (self.__class__.__name__, self.__dict__)
@@ -151,6 +151,8 @@ class ItemSet(ResponseGroup):
                 return self.next()
             else:
                 raise
+
+    __next__ = next
 
     def __iter__(self):
         return self

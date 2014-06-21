@@ -23,7 +23,6 @@ import boto
 from boto.connection import AWSQueryConnection, AWSAuthConnection
 from boto.exception import BotoServerError
 import time
-import urllib
 import xml.sax
 from boto.ecs.item import ItemSet
 from boto import handler
