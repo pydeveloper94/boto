@@ -1,3 +1,4 @@
+import six
 import boto
 from boto.dynamodb2 import exceptions
 from boto.dynamodb2.fields import (HashKey, RangeKey,
@@ -388,7 +389,7 @@ class Table(object):
         if global_indexes:
             gsi_data = []
 
-            for gsi_name, gsi_throughput in global_indexes.items():
+            for gsi_name, gsi_throughput in six.iteritems(global_indexes):
                 gsi_data.append({
                     "Update": {
                         "IndexName": gsi_name,
@@ -445,7 +446,7 @@ class Table(object):
         """
         raw_key = {}
 
-        for key, value in keys.items():
+        for key, value in six.iteritems(keys):
             raw_key[key] = self._dynamizer.encode(value)
 
         return raw_key
@@ -567,7 +568,7 @@ class Table(object):
         for x, arg in enumerate(args):
             kwargs[self.schema[x].name] = arg
         ret = self.get_item(**kwargs)
-        if not ret.keys():
+        if not list(ret.keys()):
             return None
         return ret
 
@@ -762,7 +763,7 @@ class Table(object):
 
         filters = {}
 
-        for field_and_op, value in filter_kwargs.items():
+        for field_and_op, value in six.iteritems(filter_kwargs):
             field_bits = field_and_op.split('__')
             fieldname = '__'.join(field_bits[:-1])
 
@@ -1062,7 +1063,7 @@ class Table(object):
         if exclusive_start_key:
             kwargs['exclusive_start_key'] = {}
 
-            for key, value in exclusive_start_key.items():
+            for key, value in six.iteritems(exclusive_start_key):
                 kwargs['exclusive_start_key'][key] = \
                     self._dynamizer.encode(value)
 
@@ -1094,7 +1095,7 @@ class Table(object):
         if raw_results.get('LastEvaluatedKey', None):
             last_key = {}
 
-            for key, value in raw_results['LastEvaluatedKey'].items():
+            for key, value in six.iteritems(raw_results['LastEvaluatedKey']):
                 last_key[key] = self._dynamizer.decode(value)
 
         return {
@@ -1198,7 +1199,7 @@ class Table(object):
         if exclusive_start_key:
             kwargs['exclusive_start_key'] = {}
 
-            for key, value in exclusive_start_key.items():
+            for key, value in six.iteritems(exclusive_start_key):
                 kwargs['exclusive_start_key'][key] = \
                     self._dynamizer.encode(value)
 
@@ -1225,7 +1226,7 @@ class Table(object):
         if raw_results.get('LastEvaluatedKey', None):
             last_key = {}
 
-            for key, value in raw_results['LastEvaluatedKey'].items():
+            for key, value in six.iteritems(raw_results['LastEvaluatedKey']):
                 last_key[key] = self._dynamizer.decode(value)
 
         return {
@@ -1290,7 +1291,7 @@ class Table(object):
         for key_data in keys:
             raw_key = {}
 
-            for key, value in key_data.items():
+            for key, value in six.iteritems(key_data):
                 raw_key[key] = self._dynamizer.encode(value)
 
             items[self.table_name]['Keys'].append(raw_key)
@@ -1311,7 +1312,7 @@ class Table(object):
         for raw_key in raw_unproccessed.get('Keys', []):
             py_key = {}
 
-            for key, value in raw_key.items():
+            for key, value in six.iteritems(raw_key):
                 py_key[key] = self._dynamizer.decode(value)
 
             unprocessed_keys.append(py_key)

@@ -21,6 +21,7 @@
 # IN THE SOFTWARE.
 #
 
+import six
 
 class Batch(object):
     """
@@ -176,7 +177,7 @@ class BatchList(list):
         if not self.unprocessed:
             return None
 
-        for table_name, table_req in self.unprocessed.iteritems():
+        for table_name, table_req in six.iteritems(self.unprocessed):
             table_keys = table_req['Keys']
             table = self.layer2.get_table(table_name)
 

@@ -25,6 +25,7 @@ from boto.dynamodb.batch import BatchList
 from boto.dynamodb.schema import Schema
 from boto.dynamodb.item import Item
 from boto.dynamodb import exceptions as dynamodb_exceptions
+import six
 import time
 
 
@@ -47,16 +48,17 @@ class TableBatchGenerator(object):
         self.consistent_read = consistent_read
 
     def _queue_unprocessed(self, res):
-        if not u'UnprocessedKeys' in res:
+        if not six.u('UnprocessedKeys') in res:
             return
-        if not self.table.name in res[u'UnprocessedKeys']:
+        if not self.table.name in res[six.u('UnprocessedKeys')]:
             return
 
-        keys = res[u'UnprocessedKeys'][self.table.name][u'Keys']
+        keys = res[six.u(u'UnprocessedKeys')][self.table.name][six.u(u'Keys')]
 
         for key in keys:
-            h = key[u'HashKeyElement']
-            r = key[u'RangeKeyElement'] if u'RangeKeyElement' in key else None
+            h = key[six.u('HashKeyElement')]
+            r = key[six.u('RangeKeyElement')] if six.u('RangeKeyElement') \
+                in key else None
             self.keys.append((h, r))
 
     def __iter__(self):
@@ -68,10 +70,12 @@ class TableBatchGenerator(object):
             res = batch.submit()
 
             # parse the results
-            if not self.table.name in res[u'Responses']:
+            if not self.table.name in res[six.u('Responses')]:
                 continue
-            self.consumed_units += res[u'Responses'][self.table.name][u'ConsumedCapacityUnits']
-            for elem in res[u'Responses'][self.table.name][u'Items']:
+            self.consumed_units += res[six.u('Responses')][ \
+                self.table.name][six.u('ConsumedCapacityUnits')]
+            for elem in res[six.u('Responses')][
+                    self.table.name][six.u('Items')]:
                 yield elem
 
             # re-queue un processed keys

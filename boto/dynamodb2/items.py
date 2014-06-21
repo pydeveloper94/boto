@@ -90,13 +90,13 @@ class Item(object):
         del self._data[key]
 
     def keys(self):
-        return self._data.keys()
+        return list(self._data.keys())
 
     def values(self):
-        return self._data.values()
+        return list(self._data.values())
 
     def items(self):
-        return self._data.items()
+        return list(self._data.items())
 
     def get(self, key, default=None):
         return self._data.get(key, default)
@@ -108,8 +108,10 @@ class Item(object):
     def __contains__(self, key):
         return key in self._data
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self._data)
+
+    __nonzero__ = __bool__
 
     def _determine_alterations(self):
         """
@@ -214,7 +216,7 @@ class Item(object):
         """
         self._data = {}
 
-        for field_name, field_value in data.get('Item', {}).items():
+        for field_name, field_value in six.iteritems(data.get('Item', {})):
             self[field_name] = self._dynamizer.decode(field_value)
 
         self._loaded = True
@@ -242,7 +244,7 @@ class Item(object):
         """
         raw_key_data = {}
 
-        for key, value in self.get_keys().items():
+        for key, value in six.iteritems(self.get_keys()):
             raw_key_data[key] = self._dynamizer.encode(value)
 
         return raw_key_data
@@ -256,7 +258,7 @@ class Item(object):
         expects = {}
 
         if fields is None:
-            fields = self._data.keys() + self._orig_data.keys()
+            fields = list(self._data.keys()) + list(self._orig_data.keys())
 
         # Only uniques.
         fields = set(fields)
@@ -319,7 +321,7 @@ class Item(object):
         # and hand-off to the table to handle creation/update.
         final_data = {}
 
-        for key, value in self._data.items():
+        for key, value in six.iteritems(self._data):
             if not self._is_storable(value):
                 continue
 
@@ -341,14 +343,14 @@ class Item(object):
         fields = set()
         alterations = self._determine_alterations()
 
-        for key, value in alterations['adds'].items():
+        for key, value in six.iteritems(alterations['adds']):
             final_data[key] = {
                 'Action': 'PUT',
                 'Value': self._dynamizer.encode(self._data[key])
             }
             fields.add(key)
 
-        for key, value in alterations['changes'].items():
+        for key, value in six.iteritems(alterations['changes']):
             final_data[key] = {
                 'Action': 'PUT',
                 'Value': self._dynamizer.encode(self._data[key])
@@ -392,7 +394,7 @@ class Item(object):
         # Remove the key(s) from the ``final_data`` if present.
         # They should only be present if this is a new item, in which
         # case we shouldn't be sending as part of the data to update.
-        for fieldname, value in key.items():
+        for fieldname, value in six.iteritems(key):
             if fieldname in final_data:
                 del final_data[fieldname]
 

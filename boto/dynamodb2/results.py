@@ -1,3 +1,5 @@
+from collections import Callable
+
 class ResultSet(object):
     """
     A class used to lazily handle page-to-page navigation through a set of
@@ -78,6 +80,8 @@ class ResultSet(object):
         else:
             raise StopIteration()
 
+    __next__ = next
+
     def to_call(self, the_callable, *args, **kwargs):
         """
         Sets up the callable & any arguments to run it with.
@@ -96,7 +100,7 @@ class ResultSet(object):
             >>> rs.to_call(squares_to, y=3)
 
         """
-        if not callable(the_callable):
+        if not isinstance(the_callable, Callable):
             raise ValueError(
                 'You must supply an object or function to be called.'
             )
