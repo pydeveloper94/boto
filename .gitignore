@@ -3,6 +3,7 @@
 *.log
 *~
 boto.egg-info
+boto/2to3.txt
 build/
 dist/
 MANIFEST
