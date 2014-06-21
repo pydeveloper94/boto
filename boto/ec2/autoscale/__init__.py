@@ -28,6 +28,8 @@ Auto Scaling service.
 """
 
 import base64
+import six
+from six.moves import range as range_
 
 import boto
 from boto.connection import AWSQueryConnection
@@ -134,15 +136,15 @@ class AutoScaleConnection(AWSQueryConnection):
             ['us-east-1b',...]
         """
         # different from EC2 list params
-        for i in xrange(1, len(items) + 1):
+        for i in range_(1, len(items) + 1):
             if isinstance(items[i - 1], dict):
-                for k, v in items[i - 1].iteritems():
+                for k, v in six.iteritems(items[i - 1]):
                     if isinstance(v, dict):
-                        for kk, vv in v.iteritems():
+                        for kk, vv in six.iteritems(v):
                             params['%s.member.%d.%s.%s' % (label, i, k, kk)] = vv
                     else:
                         params['%s.member.%d.%s' % (label, i, k)] = v
-            elif isinstance(items[i - 1], basestring):
+            elif isinstance(items[i - 1], six.string_types):
                 params['%s.member.%d' % (label, i)] = items[i - 1]
 
     def _update_group(self, op, as_group):

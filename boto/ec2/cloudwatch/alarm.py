@@ -20,6 +20,8 @@
 # IN THE SOFTWARE.
 #
 
+import six
+
 from datetime import datetime
 from boto.resultset import ResultSet
 from boto.ec2.cloudwatch.listelement import ListElement
@@ -57,7 +59,7 @@ class MetricAlarm(object):
                     '<':  'LessThanThreshold',
                     '<=': 'LessThanOrEqualToThreshold',
                }
-    _rev_cmp_map = dict((v, k) for (k, v) in _cmp_map.iteritems())
+    _rev_cmp_map = dict((v, k) for (k, v) in six.iteritems(_cmp_map))
 
     def __init__(self, connection=None, name=None, metric=None,
                  namespace=None, statistic=None, comparison=None,

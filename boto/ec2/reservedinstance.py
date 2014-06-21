@@ -22,7 +22,7 @@
 from boto.resultset import ResultSet
 from boto.ec2.ec2object import EC2Object
 from boto.utils import parse_ts
-
+from six import print_
 
 class ReservedInstancesOffering(EC2Object):
 
@@ -82,13 +82,13 @@ class ReservedInstancesOffering(EC2Object):
             self.marketplace = True if value == 'true' else False
 
     def describe(self):
-        print 'ID=%s' % self.id
-        print '\tInstance Type=%s' % self.instance_type
-        print '\tZone=%s' % self.availability_zone
-        print '\tDuration=%s' % self.duration
-        print '\tFixed Price=%s' % self.fixed_price
-        print '\tUsage Price=%s' % self.usage_price
-        print '\tDescription=%s' % self.description
+        print_('ID=%s' % self.id)
+        print_('\tInstance Type=%s' % self.instance_type)
+        print_('\tZone=%s' % self.availability_zone)
+        print_('\tDuration=%s' % self.duration)
+        print_('\tFixed Price=%s' % self.fixed_price)
+        print_('\tUsage Price=%s' % self.usage_price)
+        print_('\tDescription=%s' % self.description)
 
     def purchase(self, instance_count=1, dry_run=False):
         return self.connection.purchase_reserved_instance_offering(
