@@ -20,6 +20,9 @@
 # IN THE SOFTWARE.
 
 import os
+import six
+from six import print_
+from six.moves import input as input_
 
 def int_val_fn(v):
     try:
@@ -40,24 +43,24 @@ class IObject(object):
             n = 1
             choices = []
             for item in item_list:
-                if isinstance(item, basestring):
-                    print '[%d] %s' % (n, item)
+                if isinstance(item, six.string_types):
+                    print_('[%d] %s' % (n, item))
                     choices.append(item)
                     n += 1
                 else:
                     obj, id, desc = item
                     if desc:
                         if desc.find(search_str) >= 0:
-                            print '[%d] %s - %s' % (n, id, desc)
+                            print_('[%d] %s - %s' % (n, id, desc))
                             choices.append(obj)
                             n += 1
                     else:
                         if id.find(search_str) >= 0:
-                            print '[%d] %s' % (n, id)
+                            print_('[%d] %s' % (n, id))
                             choices.append(obj)
                             n += 1
             if choices:
-                val = raw_input('%s[1-%d]: ' % (prompt, len(choices)))
+                val = input_('%s[1-%d]: ' % (prompt, len(choices)))
                 if val.startswith('/'):
                     search_str = val[1:]
                 else:
@@ -67,23 +70,23 @@ class IObject(object):
                             return None
                         choice = choices[int_val-1]
                     except ValueError:
-                        print '%s is not a valid choice' % val
+                        print_('%s is not a valid choice' % val)
                     except IndexError:
-                        print '%s is not within the range[1-%d]' % (val,
-                                                                    len(choices))
+                        print_('%s is not within the range[1-%d]' % 
+                            (val, len(choices)))
             else:
-                print "No objects matched your pattern"
+                print_("No objects matched your pattern")
                 search_str = ''
         return choice
 
     def get_string(self, prompt, validation_fn=None):
         okay = False
         while not okay:
-            val = raw_input('%s: ' % prompt)
+            val = input_('%s: ' % prompt)
             if validation_fn:
                 okay = validation_fn(val)
                 if not okay:
-                    print 'Invalid value: %s' % val
+                    print_('Invalid value: %s' % val)
             else:
                 okay = True
         return val
@@ -92,7 +95,7 @@ class IObject(object):
         okay = False
         val = ''
         while not okay:
-            val = raw_input('%s: %s' % (prompt, val))
+            val = input_('%s: %s' % (prompt, val))
             val = os.path.expanduser(val)
             if os.path.isfile(val):
                 okay = True
@@ -105,7 +108,7 @@ class IObject(object):
                 else:
                     val = ''
             else:
-                print 'Invalid value: %s' % val
+                print_('Invalid value: %s' % val)
                 val = ''
         return val
 

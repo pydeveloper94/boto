@@ -24,7 +24,8 @@ import boto
 import os
 import time
 import shutil
-import StringIO
+from six import print_
+from six.moves import input as input_, StringIO
 import paramiko
 import socket
 import subprocess
@@ -56,23 +57,26 @@ class SSHClient(object):
                                          pkey=self._pkey,
                                          timeout=self._timeout)
                 return
-            except socket.error, (value, message):
+            except socket.error:
+                _, e, _ = sys.exc_info()
+                (value, message) = e.args
                 if value in (51, 61, 111):
-                    print 'SSH Connection refused, will retry in 5 seconds'
+                    print_('SSH Connection refused, will retry in 5 seconds')
                     time.sleep(5)
                     retry += 1
                 else:
                     raise
             except paramiko.BadHostKeyException:
-                print "%s has an entry in ~/.ssh/known_hosts and it doesn't match" % self.server.hostname
-                print 'Edit that file to remove the entry and then hit return to try again'
-                raw_input('Hit Enter when ready')
+                print_("%s has an entry in ~/.ssh/known_hosts and it doesn't match" % self.server.hostname)
+                print_('Edit that file to remove the entry and then hit return to try again')
+                input_('Hit Enter when ready')
                 retry += 1
             except EOFError:
-                print 'Unexpected Error from SSH Connection, retry in 5 seconds'
+                print_('Unexpected Error from SSH Connection, ' \
+                    'retry in 5 seconds')
                 time.sleep(5)
                 retry += 1
-        print 'Could not establish SSH connection'
+        print_('Could not establish SSH connection')
 
     def open_sftp(self):
         return self._ssh_client.open_sftp()

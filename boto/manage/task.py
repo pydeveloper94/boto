@@ -23,7 +23,10 @@
 import boto
 from boto.sdb.db.property import StringProperty, DateTimeProperty, IntegerProperty
 from boto.sdb.db.model import Model
-import datetime, subprocess, StringIO, time
+import datetime
+from six.moves import StringIO
+import subprocess
+import time
 
 def check_hour(val):
     if val == '*':

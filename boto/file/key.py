@@ -22,7 +22,8 @@
 
 # File representation of key, for use with "file://" URIs.
 
-import os, shutil, StringIO
+from six.moves import StringIO
+import os, shutil
 import sys
 
 class Key(object):

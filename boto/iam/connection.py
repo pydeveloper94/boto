@@ -19,6 +19,9 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
+
+import six
+
 import boto
 import boto.jsonresponse
 from boto.compat import json
@@ -1104,13 +1107,13 @@ class IAMConnection(AWSQueryConnection):
 
     def _build_policy(self, assume_role_policy_document=None):
         if assume_role_policy_document is not None:
-            if isinstance(assume_role_policy_document, basestring):
+            if isinstance(assume_role_policy_document, six.string_types):
                 # Historically, they had to pass a string. If it's a string,
                 # assume the user has already handled it.
                 return assume_role_policy_document
         else:
 
-            for tld, policy in DEFAULT_POLICY_DOCUMENTS.items():
+            for tld, policy in six.iteritems(DEFAULT_POLICY_DOCUMENTS):
                 if tld is 'default':
                     # Skip the default. We'll fall back to it if we don't find
                     # anything.

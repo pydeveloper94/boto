@@ -17,7 +17,7 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 from decimal import Decimal
-
+import six
 
 class ComplexType(dict):
     _value = 'Value'
@@ -41,7 +41,7 @@ class DeclarativeType(object):
         self._hint = JITResponse
         self._hint.__name__ = 'JIT_{0}/{1}'.format(self.__class__.__name__,
                                                    hex(id(self._hint))[2:])
-        for name, value in kw.items():
+        for name, value in six.iteritems(kw):
             setattr(self._hint, name, value)
 
     def __repr__(self):
@@ -201,7 +201,7 @@ class ResponseElement(dict):
         scope = inherit(self.__class__)
         scope.update(self.__dict__)
         declared = lambda attr: isinstance(attr[1], DeclarativeType)
-        for name, node in filter(declared, scope.items()):
+        for name, node in filter(declared, list(scope.items())):
             getattr(node, op)(self, name, parentname=self._name, **kw)
 
     @property
@@ -211,7 +211,7 @@ class ResponseElement(dict):
     def __repr__(self):
         render = lambda pair: '{0!s}: {1!r}'.format(*pair)
         do_show = lambda pair: not pair[0].startswith('_')
-        attrs = filter(do_show, self.__dict__.items())
+        attrs = list(filter(do_show, list(self.__dict__.items())))
         name = self.__class__.__name__
         if name.startswith('JIT_'):
             name = '^{0}^'.format(self._name or '')
@@ -414,7 +414,7 @@ class ComplexDimensions(ResponseElement):
 
     def __repr__(self):
         values = [getattr(self, key, None) for key in self._dimensions]
-        values = filter(None, values)
+        values = values = [_f for _f in values if _f]
         return 'x'.join(map('{0.Value:0.2f}{0[Units]}'.format, values))
 
     @strip_namespace

@@ -19,7 +19,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-import types
+import six
 from boto.gs.user import User
 from boto.exception import InvalidCorsError
 from xml.sax import handler
@@ -156,7 +156,7 @@ class Cors(handler.ContentHandler):
             s += '<' + collection + '>'
             # If collection elements has type string, append atomic value,
             # otherwise, append sequence of values in named tags.
-            if isinstance(elements_or_value, types.StringTypes):
+            if isinstance(elements_or_value, six.string_types):
               s += elements_or_value
             else:
               for (name, value) in elements_or_value:

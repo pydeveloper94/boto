@@ -21,7 +21,9 @@
 import xml.sax
 import hashlib
 import base64
+import six
 import string
+import sys
 import collections
 from boto.connection import AWSQueryConnection
 from boto.exception import BotoServerError
@@ -114,7 +116,7 @@ def destructure_object(value, into, prefix, members=False):
                 continue
             destructure_object(value[name], into, prefix + '.' + name,
                                members=members)
-    elif isinstance(value, basestring):
+    elif isinstance(value, six.string_types):
         into[prefix] = value
     elif isinstance(value, collections.Iterable):
         for index, element in enumerate(value):
@@ -148,8 +150,8 @@ def requires(*groups):
     def decorator(func):
 
         def wrapper(*args, **kw):
-            hasgroup = lambda x: len(x) == len(filter(kw.has_key, x))
-            if 1 != len(filter(hasgroup, groups)):
+            hasgroup = lambda x: len(x) == len(list(filter(kw.has_key, x)))
+            if 1 != len(list(filter(hasgroup, groups))):
                 message = ' OR '.join(['+'.join(g) for g in groups])
                 message = "{0} requires {1} argument(s)" \
                           "".format(func.action, message)
@@ -167,8 +169,8 @@ def exclusive(*groups):
     def decorator(func):
 
         def wrapper(*args, **kw):
-            hasgroup = lambda x: len(x) == len(filter(kw.has_key, x))
-            if len(filter(hasgroup, groups)) not in (0, 1):
+            hasgroup = lambda x: len(x) == len(list(filter(kw.has_key, x)))
+            if len(list(filter(hasgroup, groups))) not in (0, 1):
                 message = ' OR '.join(['+'.join(g) for g in groups])
                 message = "{0} requires either {1}" \
                           "".format(func.action, message)
@@ -206,7 +208,7 @@ def requires_some_of(*fields):
     def decorator(func):
 
         def wrapper(*args, **kw):
-            if not filter(kw.has_key, fields):
+            if not list(filter(kw.has_key, fields)):
                 message = "{0} requires at least one of {1} argument(s)" \
                           "".format(func.action, ', '.join(fields))
                 raise KeyError(message)
@@ -235,7 +237,8 @@ def api_action(section, quota, restore, *api):
 
     def decorator(func, quota=int(quota), restore=float(restore)):
         version, accesskey, path = api_version_path[section]
-        action = ''.join(api or map(str.capitalize, func.func_name.split('_')))
+        action = ''.join(api or list(map(
+            str.capitalize, func.func_name.split('_'))))
 
         def wrapper(self, *args, **kw):
             kw.setdefault(accesskey, getattr(self, accesskey, None))
@@ -254,7 +257,7 @@ def api_action(section, quota, restore, *api):
         wrapper.__doc__ = "MWS {0}/{1} API call; quota={2} restore={3:.2f}\n" \
                           "{4}".format(action, version, quota, restore,
                                        func.__doc__)
-        api_call_map[action] = func.func_name
+        api_call_map[action] = func.__name__
         return wrapper
     return decorator
 
@@ -273,12 +276,12 @@ class MWSConnection(AWSQueryConnection):
         super(MWSConnection, self).__init__(*args, **kw)
 
     def _setup_factories(self, extrascopes, **kw):
-        for factory, (scope, Default) in {
+        for factory, (scope, Default) in six.iteritems({
             'response_factory':
                 (boto.mws.response, self.ResponseFactory),
             'response_error_factory':
                 (boto.mws.exception, self.ResponseErrorFactory),
-        }.items():
+        }):
             if factory in kw:
                 setattr(self, '_' + factory, kw.pop(factory))
             else:
@@ -307,7 +310,8 @@ class MWSConnection(AWSQueryConnection):
                                                host=self.host)
         try:
             response = self._mexe(request, override_num_retries=None)
-        except BotoServerError, bs:
+        except BotoServerError:
+            _, bs, _ = sys.exc_info()
             raise self._response_error_factor(bs.status, bs.reason, bs.body)
         body = response.read()
         boto.log.debug(body)
@@ -416,7 +420,7 @@ class MWSConnection(AWSQueryConnection):
     def get_service_status(self, **kw):
         """Instruct the user on how to get service status.
         """
-        sections = ', '.join(map(str.lower, api_version_path.keys()))
+        sections = ', '.join(map(str.lower, list(api_version_path.keys())))
         message = "Use {0}.get_(section)_service_status(), " \
                   "where (section) is one of the following: " \
                   "{1}".format(self.__class__.__name__, sections)
@@ -720,11 +724,11 @@ class MWSConnection(AWSQueryConnection):
         toggle = set(('FulfillmentChannel.Channel.1',
                       'OrderStatus.Status.1', 'PaymentMethod.1',
                       'LastUpdatedAfter', 'LastUpdatedBefore'))
-        for do, dont in {
+        for do, dont in six.iteritems({
             'BuyerEmail': toggle.union(['SellerOrderId']),
             'SellerOrderId': toggle.union(['BuyerEmail']),
-        }.items():
-            if do in kw and filter(kw.has_key, dont):
+        }):
+            if do in kw and list(filter(kw.has_key, dont)):
                 message = "Don't include {0} when specifying " \
                           "{1}".format(' or '.join(dont), do)
                 raise AssertionError(message)

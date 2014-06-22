@@ -19,7 +19,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-import StringIO
+from six.moves import StringIO
 import xml.sax
 
 class XmlHandler(xml.sax.ContentHandler):

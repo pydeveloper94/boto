@@ -18,6 +18,9 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
+
+from six import print_
+
 from boto.exception import BotoServerError
 from boto.mws.response import ResponseFactory
 
@@ -27,7 +30,7 @@ class ResponseErrorFactory(ResponseFactory):
     def __call__(self, status, reason, body=None):
         server = BotoServerError(status, reason, body=body)
         supplied = self.find_element(server.error_code, '', ResponseError)
-        print supplied.__name__
+        print_(supplied.__name__)
         return supplied(status, reason, body=body)
 
 
@@ -56,15 +59,16 @@ class InvalidParameterValue(ResponseError):
     """
     One or more parameter values in the request is invalid.
     """
-
+    pass
 
 class InvalidParameter(ResponseError):
     """
     One or more parameters in the request is invalid.
     """
-
+    pass
 
 class InvalidAddress(ResponseError):
     """
     Invalid address.
     """
+    pass

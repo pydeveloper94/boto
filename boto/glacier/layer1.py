@@ -23,6 +23,7 @@
 #
 
 import os
+import six
 
 import boto.glacier
 from boto.compat import json
@@ -650,8 +651,8 @@ class Layer1(AWSAuthConnection):
 
         """
         uri = 'vaults/%s/jobs' % vault_name
-        response_headers = [('x-amz-job-id', u'JobId'),
-                            ('Location', u'Location')]
+        response_headers = [('x-amz-job-id', six.u('JobId')),
+                            ('Location', six.u('Location'))]
         json_job_data = json.dumps(job_data)
         return self.make_request('POST', uri, data=json_job_data,
                                  ok_responses=(202,),
@@ -727,9 +728,9 @@ class Layer1(AWSAuthConnection):
             "Range: bytes=0-1048575". By default, this operation downloads the
             entire output.
         """
-        response_headers = [('x-amz-sha256-tree-hash', u'TreeHash'),
-                            ('Content-Range', u'ContentRange'),
-                            ('Content-Type', u'ContentType')]
+        response_headers = [('x-amz-sha256-tree-hash', six.u('TreeHash')),
+                            ('Content-Range', six.u('ContentRange')),
+                            ('Content-Type', six.u('ContentType'))]
         headers = None
         if byte_range:
             headers = {'Range': 'bytes=%d-%d' % byte_range}
@@ -806,9 +807,9 @@ class Layer1(AWSAuthConnection):
         :param description: The optional description of the archive you
             are uploading.
         """
-        response_headers = [('x-amz-archive-id', u'ArchiveId'),
-                            ('Location', u'Location'),
-                            ('x-amz-sha256-tree-hash', u'TreeHash')]
+        response_headers = [('x-amz-archive-id', six.u('ArchiveId')),
+                            ('Location', six.u('Location')),
+                            ('x-amz-sha256-tree-hash', six.u('TreeHash'))]
         uri = 'vaults/%s/archives' % vault_name
         try:
             content_length = str(len(archive))
@@ -937,8 +938,8 @@ class Layer1(AWSAuthConnection):
         :param part_size: The size of each part except the last, in bytes. The
             last part can be smaller than this part size.
         """
-        response_headers = [('x-amz-multipart-upload-id', u'UploadId'),
-                            ('Location', u'Location')]
+        response_headers = [('x-amz-multipart-upload-id', six.u('UploadId')),
+                            ('Location', six.u('Location'))]
         headers = {'x-amz-part-size': str(part_size)}
         if description:
             headers['x-amz-archive-description'] = description
@@ -1028,8 +1029,8 @@ class Layer1(AWSAuthConnection):
             archive. This value should be the sum of all the sizes of
             the individual parts that you uploaded.
         """
-        response_headers = [('x-amz-archive-id', u'ArchiveId'),
-                            ('Location', u'Location')]
+        response_headers = [('x-amz-archive-id', six.u('ArchiveId')),
+                            ('Location', six.u('Location'))]
         headers = {'x-amz-sha256-tree-hash': sha256_treehash,
                    'x-amz-archive-size': str(archive_size)}
         uri = 'vaults/%s/multipart-uploads/%s' % (vault_name, upload_id)
@@ -1271,7 +1272,7 @@ class Layer1(AWSAuthConnection):
         headers = {'x-amz-content-sha256': linear_hash,
                    'x-amz-sha256-tree-hash': tree_hash,
                    'Content-Range': 'bytes %d-%d/*' % byte_range}
-        response_headers = [('x-amz-sha256-tree-hash', u'TreeHash')]
+        response_headers = [('x-amz-sha256-tree-hash', six.u('TreeHash'))]
         uri = 'vaults/%s/multipart-uploads/%s' % (vault_name, upload_id)
         return self.make_request('PUT', uri, headers=headers,
                                  data=part_data, ok_responses=(204,),

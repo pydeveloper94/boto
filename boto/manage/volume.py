@@ -26,6 +26,7 @@ from boto.manage.server import Server
 from boto.manage import propget
 import boto.utils
 import boto.ec2
+from six import print_
 import time
 import traceback
 from contextlib import closing
@@ -199,7 +200,7 @@ class Volume(Model):
 
     def attach(self, server=None):
         if self.attachment_state == 'attached':
-            print 'already attached'
+            print_('already attached')
             return None
         if server:
             self.server = server
@@ -210,7 +211,7 @@ class Volume(Model):
     def detach(self, force=False):
         state = self.attachment_state
         if state == 'available' or state is None or state == 'detaching':
-            print 'already detached'
+            print_('already detached')
             return None
         ec2 = self.get_ec2_connection()
         ec2.detach_volume(self.volume_id, self.server.instance_id, self.device, force)
@@ -353,9 +354,9 @@ class Volume(Model):
                                      day=now.day, tzinfo=now.tzinfo)
         # Keep the first snapshot from each day of the previous week
         one_week = datetime.timedelta(days=7, seconds=60*60)
-        print midnight-one_week, midnight
+        print_(midnight-one_week, midnight)
         previous_week = self.get_snapshot_range(snaps, midnight-one_week, midnight)
-        print previous_week
+        print_(previous_week)
         if not previous_week:
             return snaps
         current_day = None

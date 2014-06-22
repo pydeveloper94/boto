@@ -28,6 +28,7 @@ from .writer import compute_hashes_from_fileobj, resume_file_upload, Writer
 from .concurrent import ConcurrentUploader
 from .utils import minimum_part_size, DEFAULT_PART_SIZE
 import os.path
+import six
 
 
 _MEGABYTE = 1024 * 1024
@@ -54,7 +55,7 @@ class Vault(object):
         if response_data:
             for response_name, attr_name, default in self.ResponseDataElements:
                 value = response_data[response_name]
-                if isinstance(value, unicode):
+                if isinstance(value, six.text_type):
                     value = value.encode('utf8')
                 setattr(self, attr_name, value)
         else:

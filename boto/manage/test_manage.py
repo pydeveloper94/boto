@@ -1,34 +1,36 @@
 from boto.manage.server import Server
 from boto.manage.volume import Volume
+from six import print_
 import time
 
-print '--> Creating New Volume'
+print_('--> Creating New Volume')
 volume = Volume.create()
-print volume
+print_(volume)
 
-print '--> Creating New Server'
+print_('--> Creating New Server')
 server_list = Server.create()
 server = server_list[0]
-print server
+print_(server)
 
-print '----> Waiting for Server to start up'
+print_('----> Waiting for Server to start up')
 while server.status != 'running':
-    print '*'
+    print_('*')
     time.sleep(10)
-print '----> Server is running'
+print_('----> Server is running')
 
-print '--> Run "df -k" on Server'
+print_('--> Run "df -k" on Server')
 status = server.run('df -k')
-print status[1]
+print_(status[1])
 
-print '--> Now run volume.make_ready to make the volume ready to use on server'
+print_('--> Now run volume.make_ready to make the volume ready '\
+    'to use on server')
 volume.make_ready(server)
 
-print '--> Run "df -k" on Server'
+print_('--> Run "df -k" on Server')
 status = server.run('df -k')
-print status[1]
+print_(status[1])
 
-print '--> Do an "ls -al" on the new filesystem'
+print_('--> Do an "ls -al" on the new filesystem')
 status = server.run('ls -al %s' % volume.mount_point)
-print status[1]
+print_(status[1])
 

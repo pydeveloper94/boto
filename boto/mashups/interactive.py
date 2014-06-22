@@ -18,6 +18,7 @@
 
 
 import socket
+from six import print_
 import sys
 
 # windows does not have termios...
@@ -51,7 +52,7 @@ def posix_shell(chan):
                 try:
                     x = chan.recv(1024)
                     if len(x) == 0:
-                        print '\r\n*** EOF\r\n',
+                        print_('\r\n*** EOF\r\n')
                         break
                     sys.stdout.write(x)
                     sys.stdout.flush()

@@ -19,13 +19,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
+from collections import Callable
+from six import print_
+from six.moves import input as input_
 
 def get(prop, choices=None):
     prompt = prop.verbose_name
     if not prompt:
         prompt = prop.name
     if choices:
-        if callable(choices):
+        if isinstance(choices, Callable):
             choices = choices()
     else:
         choices = prop.get_choices()
@@ -38,8 +41,8 @@ def get(prop, choices=None):
                 value = choices[i-1]
                 if isinstance(value, tuple):
                     value = value[0]
-                print '[%d] %s' % (i, value)
-            value = raw_input('%s [%d-%d]: ' % (prompt, min, max))
+                print_('[%d] %s' % (i, value))
+            value = input_('%s [%d-%d]: ' % (prompt, min, max))
             try:
                 int_value = int(value)
                 value = choices[int_value-1]
@@ -47,18 +50,18 @@ def get(prop, choices=None):
                     value = value[1]
                 valid = True
             except ValueError:
-                print '%s is not a valid choice' % value
+                print_('%s is not a valid choice' % value)
             except IndexError:
-                print '%s is not within the range[%d-%d]' % (min, max)
+                print_('%s is not within the range[%d-%d]' % (min, max))
         else:
-            value = raw_input('%s: ' % prompt)
+            value = input_('%s: ' % prompt)
             try:
                 value = prop.validate(value)
                 if prop.empty(value) and prop.required:
-                    print 'A value is required'
+                    print_('A value is required')
                 else:
                     valid = True
             except:
-                print 'Invalid value: %s' % value
+                print_('Invalid value: %s' % value)
     return value
         

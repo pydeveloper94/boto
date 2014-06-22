@@ -19,6 +19,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
+import six
 import xml.sax.saxutils
 
 class Question(object):
@@ -51,8 +52,8 @@ try:
     class ValidatingXML(object):
 
         def validate(self):
-            import urllib2
-            schema_src_file = urllib2.urlopen(self.schema_url)
+            from six.moves import urllib
+            schema_src_file = urllib.request.urlopen(self.schema_url)
             schema_doc = etree.parse(schema_src_file)
             schema = etree.XMLSchema(schema_doc)
             doc = etree.fromstring(self.get_as_xml())
@@ -128,7 +129,7 @@ class Application(object):
     def get_inner_content(self, content):
         content.append_field('Width', self.width)
         content.append_field('Height', self.height)
-        for name, value in self.parameters.items():
+        for name, value in six.iteritems(self.parameters):
             value = self.parameter_template % vars()
             content.append_field('ApplicationParameter', value)
 
@@ -286,7 +287,7 @@ class Constraints(OrderedContent):
 
 class Constraint(object):
     def get_attributes(self):
-        pairs = zip(self.attribute_names, self.attribute_values)
+        pairs = list(zip(self.attribute_names, self.attribute_values))
         attrs = ' '.join(
             '%s="%d"' % (name, value)
             for (name, value) in pairs
@@ -323,7 +324,7 @@ class RegExConstraint(Constraint):
         self.attribute_values = pattern, error_text, flags
 
     def get_attributes(self):
-        pairs = zip(self.attribute_names, self.attribute_values)
+        pairs = list(zip(self.attribute_names, self.attribute_values))
         attrs = ' '.join(
             '%s="%s"' % (name, value)
             for (name, value) in pairs

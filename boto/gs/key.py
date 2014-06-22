@@ -23,7 +23,7 @@ import base64
 import binascii
 import os
 import re
-import StringIO
+from six.moves import StringIO
 from boto.exception import BotoClientError
 from boto.s3.key import Key as S3Key
 from boto.s3.keyfile import KeyFile

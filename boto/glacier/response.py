@@ -20,6 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 #
+
+import six
+
 from boto.compat import json
 
 
@@ -32,7 +35,7 @@ class GlacierResponse(dict):
     def __init__(self, http_response, response_headers):
         self.http_response = http_response
         self.status = http_response.status
-        self[u'RequestId'] = http_response.getheader('x-amzn-requestid')
+        self[six.u('RequestId')] = http_response.getheader('x-amzn-requestid')
         if response_headers:
             for header_name, item_name in response_headers:
                 self[item_name] = http_response.getheader(header_name)

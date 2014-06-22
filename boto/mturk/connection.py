@@ -19,9 +19,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-import xml.sax
 import datetime
 import itertools
+import six
+from six import print_
+from six.moves import map as map_
+import xml.sax
 
 from boto import handler
 from boto import config
@@ -307,7 +310,7 @@ class MTurkConnection(AWSQueryConnection):
         records, return the page numbers to be retrieved.
         """
         pages = total_records / page_size + bool(total_records % page_size)
-        return range(1, pages + 1)
+        return list(range(1, pages + 1))
 
     def get_all_hits(self):
         """
@@ -323,7 +326,7 @@ class MTurkConnection(AWSQueryConnection):
         total_records = int(search_rs.TotalNumResults)
         get_page_hits = lambda page: self.search_hits(page_size=page_size, page_number=page)
         page_nums = self._get_pages(page_size, total_records)
-        hit_sets = itertools.imap(get_page_hits, page_nums)
+        hit_sets = map_(get_page_hits, page_nums)
         return itertools.chain.from_iterable(hit_sets)
 
     def search_hits(self, sort_by='CreationTime', sort_direction='Ascending',
@@ -662,7 +665,7 @@ class MTurkConnection(AWSQueryConnection):
             params['TestDurationInSeconds'] = test_duration
 
         if answer_key is not None:
-            if isinstance(answer_key, basestring):
+            if isinstance(answer_key, six.string_types):
                 params['AnswerKey'] = answer_key  # xml
             else:
                 raise TypeError
@@ -691,7 +694,7 @@ class MTurkConnection(AWSQueryConnection):
         total_records = int(search_qual.TotalNumResults)
         get_page_quals = lambda page: self.get_qualifications_for_qualification_type(qualification_type_id = qualification_type_id, page_size=page_size, page_number = page)
         page_nums = self._get_pages(page_size, total_records)
-        qual_sets = itertools.imap(get_page_quals, page_nums)
+        qual_sets = map_(get_page_quals, page_nums)
         return itertools.chain.from_iterable(qual_sets)
 
     def get_qualifications_for_qualification_type(self, qualification_type_id, page_size=100, page_number = 1):
@@ -730,7 +733,7 @@ class MTurkConnection(AWSQueryConnection):
             params['TestDurationInSeconds'] = test_duration
 
         if answer_key is not None:
-            if isinstance(answer_key, basestring):
+            if isinstance(answer_key, six.string_types):
                 params['AnswerKey'] = answer_key  # xml
             else:
                 raise TypeError
@@ -829,7 +832,7 @@ class MTurkConnection(AWSQueryConnection):
         """
         body = response.read()
         if self.debug == 2:
-            print body
+            print_(body)
         if '<Errors>' not in body:
             rs = ResultSet(marker_elems)
             h = handler.XmlHandler(rs, self)
@@ -848,7 +851,7 @@ class MTurkConnection(AWSQueryConnection):
             keywords = ', '.join(keywords)
         if isinstance(keywords, str):
             final_keywords = keywords
-        elif isinstance(keywords, unicode):
+        elif isinstance(keywords, six.text_type):
             final_keywords = keywords.encode('utf-8')
         elif keywords is None:
             final_keywords = ""
