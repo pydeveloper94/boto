@@ -19,6 +19,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
+import six
 
 class Blob(object):
     """Blob object"""
@@ -29,7 +30,7 @@ class Blob(object):
 
     @property
     def file(self):
-        from StringIO import StringIO
+        from six.moves import StringIO
         if self._file:
             f = self._file
         else:
@@ -37,14 +38,15 @@ class Blob(object):
         return f
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
+        # Is it a problem that python3 returns a bytes string?
+        return str(self).encode('utf-8')
 
     def __unicode__(self):
         if hasattr(self.file, "get_contents_as_string"):
             value = self.file.get_contents_as_string()
         else:
             value = self.file.getvalue()
-        if isinstance(value, unicode):
+        if isinstance(value, six.text_type):
             return value
         else:
             return value.decode('utf-8')
@@ -60,7 +62,9 @@ class Blob(object):
         return self.file.readline()
 
     def next(self):
-        return self.file.next()
+        return six.advance_iterator(self.file)
+
+    __next__ = next
 
     def __iter__(self):
         return iter(self.file)

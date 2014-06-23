@@ -86,8 +86,8 @@ def needs_caller_reference(func):
 def api_action(*api):
 
     def decorator(func):
-        action = ''.join(api or list(map(
-            str.capitalize, func.func_name.split('_'))))
+        action = ''.join(api or map(
+            str.capitalize, func.func_name.split('_')))
         response = ResponseFactory(action)
         if hasattr(boto.fps.response, action + 'Response'):
             response = getattr(boto.fps.response, action + 'Response')

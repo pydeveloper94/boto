@@ -21,7 +21,8 @@
 #
 import boto
 from boto.pyami.scriptbase import ScriptBase
-import os, StringIO
+import os
+from six.moves import StringIO
 
 class CopyBot(ScriptBase):
 

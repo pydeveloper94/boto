@@ -40,10 +40,6 @@ try:
 except ImportError:
     from md5 import md5
 
-try:
-    long
-except NameError:
-    long = int
 
 """
 Handler for Google Cloud Storage resumable uploads. See
@@ -466,7 +462,7 @@ class ResumableUploadHandler(object):
                       bytes_to_go -= len(chunk)
 
                 if conn.debug >= 1:
-                    print 'Resuming transfer.'
+                    print_('Resuming transfer.')
             except ResumableUploadException:
                 _, e, _ = sys.exc_info()
                 if conn.debug >= 1:
@@ -680,7 +676,8 @@ class ResumableUploadHandler(object):
                 if debug >= 1:
                     print_('Resumable upload complete.')
                 return
-            except self.RETRYABLE_EXCEPTIONS, e:
+            except self.RETRYABLE_EXCEPTIONS:
+                e = sys.exc_info()[1]
                 if debug >= 1:
                     print_(('Caught exception (%s)' % e.__repr__()))
                 if isinstance(e, IOError) and e.errno == errno.EPIPE:

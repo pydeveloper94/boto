@@ -20,6 +20,7 @@
 # IN THE SOFTWARE.
 
 from six import print_
+from six.moves import input as input_
 import boto.ec2
 from boto.sdb.db.property import StringProperty, IntegerProperty
 from boto.manage import propget
@@ -78,7 +79,7 @@ if __name__ == "__main__":
     unit_price = float(offering.fixed_price)
     total_price = unit_price * params['quantity']
     print_('!!! You are about to purchase %d of these offerings for a total of $%.2f !!!' % (params['quantity'], total_price))
-    answer = raw_input('Are you sure you want to do this?  If so, enter YES: ')
+    answer = input_('Are you sure you want to do this?  If so, enter YES: ')
     if answer.strip().lower() == 'yes':
         offering.purchase(params['quantity'])
     else:

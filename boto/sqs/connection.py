@@ -19,6 +19,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
+import six
+
 import boto
 from boto.connection import AWSQueryConnection
 from boto.sqs.regioninfo import SQSRegionInfo
@@ -288,7 +290,7 @@ class SQSConnection(AWSQueryConnection):
             params['DelaySeconds'] = int(delay_seconds)
 
         if message_attributes is not None:
-            for i, name in enumerate(message_attributes.keys(), start=1):
+            for i, name in enumerate(six.iterkeys(message_attributes), start=1):
                 attribute = message_attributes[name]
                 params['MessageAttribute.%s.Name' % i] = name
                 if 'data_type' in attribute:

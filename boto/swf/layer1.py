@@ -22,6 +22,7 @@
 # IN THE SOFTWARE.
 #
 
+import six
 import time
 
 import boto
@@ -96,7 +97,7 @@ class Layer1(AWSAuthConnection):
         :type data: dict
         :param data: Specifies request parameters with default values to be removed.
         """
-        for item in data.keys():
+        for item in six.iterkeys(data):
             if isinstance(data[item], dict):
                 cls._normalize_request_dict(data[item])
             if data[item] in (None, {}):

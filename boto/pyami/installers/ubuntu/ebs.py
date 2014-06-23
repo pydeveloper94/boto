@@ -46,7 +46,10 @@ Config file section::
 import boto
 from boto.manage.volume import Volume
 from boto.exception import EC2ResponseError
-import os, time
+import os
+import six
+import sys
+import time
 from boto.pyami.installers.ubuntu.installer import Installer
 from string import Template
 
@@ -114,7 +117,8 @@ class EBSInstaller(Installer):
         if self.logical_volume_name:
             # if a logical volume was specified, override the specified volume_id
             # (if there was one) with the current AWS volume for the logical volume:
-            logical_volume = Volume.find(name = self.logical_volume_name).next()
+            logical_volume = six.advnace_iterator(
+                Volume.find(name = self.logical_volume_name))
             self.volume_id = logical_volume._volume_id
         volume = ec2.get_all_volumes([self.volume_id])[0]
         # wait for the volume to be available. The volume may still be being created
@@ -128,7 +132,8 @@ class EBSInstaller(Installer):
             try:
                 ec2.attach_volume(self.volume_id, self.instance_id, self.device)
                 attempt_attach = False
-            except EC2ResponseError, e:
+            except EC2ResponseError:
+                e = sys.exc_info()[1]
                 if e.error_code != 'IncorrectState':
                     # if there's an EC2ResonseError with the code set to IncorrectState, delay a bit for ec2
                     # to realize the instance is running, then try again. Otherwise, raise the error:

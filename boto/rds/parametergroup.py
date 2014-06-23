@@ -19,6 +19,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
+import six
+
 class ParameterGroup(dict):
 
     def __init__(self, connection=None):
@@ -133,7 +135,7 @@ class Parameter(object):
             d[prefix+'ApplyMethod'] = self.apply_method
 
     def _set_string_value(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             raise ValueError('value must be of type str')
         if self.allowed_values:
             choices = self.allowed_values.split(',')
@@ -142,9 +144,9 @@ class Parameter(object):
         self._value = value
 
     def _set_integer_value(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_values):
             value = int(value)
-        if isinstance(value, int) or isinstance(value, long):
+        if isinstance(value, six.integer_values):
             if self.allowed_values:
                 min, max = self.allowed_values.split('-')
                 if value < int(min) or value > int(max):
@@ -156,7 +158,7 @@ class Parameter(object):
     def _set_boolean_value(self, value):
         if isinstance(value, bool):
             self._value = value
-        elif isinstance(value, basestring):
+        elif isinstance(value, six.string_types):
             if value.lower() == 'true':
                 self._value = True
             else:
@@ -180,7 +182,7 @@ class Parameter(object):
         if self.type == 'string':
             return self._value
         elif self.type == 'integer':
-            if not isinstance(self._value, int) and not isinstance(self._value, long):
+            if not isinstance(self._value, six.integer_types):
                 self._set_integer_value(self._value)
             return self._value
         elif self.type == 'boolean':

@@ -238,7 +238,7 @@ def api_action(section, quota, restore, *api):
     def decorator(func, quota=int(quota), restore=float(restore)):
         version, accesskey, path = api_version_path[section]
         action = ''.join(api or list(map(
-            str.capitalize, func.func_name.split('_'))))
+            str.capitalize, func.__name__.split('_'))))
 
         def wrapper(self, *args, **kw):
             kw.setdefault(accesskey, getattr(self, accesskey, None))

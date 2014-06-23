@@ -22,6 +22,8 @@
 """
 Represents an SDB Domain
 """
+import six
+from six import print_
 from boto.sdb.queryresultset import SelectResultSet
 
 class Domain(object):
@@ -240,26 +242,26 @@ class Domain(object):
         if not f:
             from tempfile import TemporaryFile
             f = TemporaryFile()
-        print >> f, '<?xml version="1.0" encoding="UTF-8"?>'
-        print >> f, '<Domain id="%s">' % self.name
+        print_('<?xml version="1.0" encoding="UTF-8"?>', file=f)
+        print_('<Domain id="%s">' % self.name, file=f)
         for item in self:
-            print >> f, '\t<Item id="%s">' % item.name
+            print_( '\t<Item id="%s">' % item.name, file=f)
             for k in item:
-                print >> f, '\t\t<attribute id="%s">' % k
+                print_('\t\t<attribute id="%s">' % k, file=f)
                 values = item[k]
                 if not isinstance(values, list):
                     values = [values]
                 for value in values:
-                    print >> f, '\t\t\t<value><![CDATA[',
-                    if isinstance(value, unicode):
+                    print_('\t\t\t<value><![CDATA[', file=f)
+                    if isinstance(value, six.text_type):
                         value = value.encode('utf-8', 'replace')
                     else:
-                        value = unicode(value, errors='replace').encode('utf-8', 'replace')
+                        value = str(value, errors='replace').encode('utf-8', 'replace')
                     f.write(value)
-                    print >> f, ']]></value>'
-                print >> f, '\t\t</attribute>'
-            print >> f, '\t</Item>'
-        print >> f, '</Domain>'
+                    print_(']]></value>', file=f)
+                print_('\t\t</attribute>', file=f)
+            print_('\t</Item>', file=f)
+        print_('</Domain>', file=f)
         f.flush()
         f.seek(0)
         return f
@@ -370,8 +372,8 @@ class UploaderThread(Thread):
         try:
             self.db.batch_put_attributes(self.items)
         except:
-            print "Exception using batch put, trying regular put instead"
+            print_("Exception using batch put, trying regular put instead")
             for item_name in self.items:
                 self.db.put_attributes(item_name, self.items[item_name])
-        print ".",
+        print_(".", end=' ')
         sys.stdout.flush()

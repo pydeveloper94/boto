@@ -20,9 +20,9 @@
 # IN THE SOFTWARE.
 
 import six
+from six.moves import StringIO
 import xml.sax
 import cgi
-from StringIO import StringIO
 
 class ResponseGroup(xml.sax.ContentHandler):
     """A Generic "Response Group", which can
@@ -35,7 +35,7 @@ class ResponseGroup(xml.sax.ContentHandler):
         self._nodename = nodename
         self._nodepath = []
         self._curobj = None
-        self._xml = six.StringIO()
+        self._xml = StringIO()
 
     def __repr__(self):
         return '<%s: %s>' % (self.__class__.__name__, self.__dict__)
@@ -141,14 +141,14 @@ class ItemSet(ResponseGroup):
         if self.iter is None:
             self.iter = iter(self.objs)
         try:
-            return self.iter.next()
+            return six.advance_iterator(self.iter)
         except StopIteration:
             self.iter = None
             self.objs = []
             if int(self.page) < int(self.total_pages):
                 self.page += 1
                 self._connection.get_response(self.action, self.params, self.page, self)
-                return self.next()
+                return six.advance_iterator(self)
             else:
                 raise
 

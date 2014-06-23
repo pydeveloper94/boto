@@ -25,6 +25,7 @@
 Exception classes - Subclassing allows you to check for specific errors
 """
 import base64
+import sys
 import xml.sax
 from boto import handler
 from boto.compat import json
@@ -103,7 +104,8 @@ class BotoServerError(Exception):
                 try:
                     h = handler.XmlHandlerWrapper(self, self)
                     h.parseString(self.body)
-                except (TypeError, xml.sax.SAXParseException), pe:
+                except (TypeError, xml.sax.SAXParseException):
+                    pe = sys.exc_info()
                     # What if it's JSON? Let's try that.
                     try:
                         parsed = json.loads(self.body)

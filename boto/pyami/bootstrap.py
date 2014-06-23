@@ -20,11 +20,12 @@
 # IN THE SOFTWARE.
 #
 import os
+import sys
+import time
 import boto
 from boto.utils import get_instance_metadata, get_instance_userdata
 from boto.pyami.config import Config, BotoConfigPath
 from boto.pyami.scriptbase import ScriptBase
-import time
 
 class Bootstrap(ScriptBase):
     """
@@ -82,7 +83,8 @@ class Bootstrap(ScriptBase):
                 try:
                     self.run('git pull', cwd=location)
                     num_remaining_attempts = 0
-                except Exception, e:
+                except Exception:
+                    e = sys.exc_info()[1]
                     boto.log.info('git pull attempt failed with the following exception. Trying again in a bit. %s', e)
                     time.sleep(2)
             if update.find(':') >= 0:

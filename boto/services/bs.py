@@ -19,12 +19,17 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
+
 from optparse import OptionParser
+import os
+from six import print_
+from six.moves import StringIO
+import sys
+
 from boto.services.servicedef import ServiceDef
 from boto.services.submit import Submitter
 from boto.services.result import ResultProcessor
 import boto
-import sys, os, StringIO
 
 class BS(object):
 
@@ -62,32 +67,32 @@ class BS(object):
                                help="batch identifier required by the retrieve command")
 
     def print_command_help(self):
-        print '\nCommands:'
-        for key in self.Commands.keys():
-            print '  %s\t\t%s' % (key, self.Commands[key])
+        print_('\nCommands:')
+        for key in six.iterkeys(self.Commands):
+            print_('  %s\t\t%s' % (key, self.Commands[key]))
 
     def do_reset(self):
         iq = self.sd.get_obj('input_queue')
         if iq:
-            print 'clearing out input queue'
+            print_('clearing out input queue')
             i = 0
             m = iq.read()
             while m:
                 i += 1
                 iq.delete_message(m)
                 m = iq.read()
-            print 'deleted %d messages' % i
+            print_('deleted %d messages' % i)
         ob = self.sd.get_obj('output_bucket')
         ib = self.sd.get_obj('input_bucket')
         if ob:
             if ib and ob.name == ib.name:
                 return
-            print 'delete generated files in output bucket'
+            print_('delete generated files in output bucket')
             i = 0
             for k in ob:
                 i += 1
                 k.delete()
-            print 'deleted %d keys' % i
+            print_('deleted %d keys' % i)
 
     def do_submit(self):
         if not self.options.path:
@@ -97,8 +102,8 @@ class BS(object):
         s = Submitter(self.sd)
         t = s.submit_path(self.options.path, None, self.options.ignore, None,
                           None, True, self.options.path)
-        print 'A total of %d files were submitted' % t[1]
-        print 'Batch Identifier: %s' % t[0]
+        print_('A total of %d files were submitted' % t[1])
+        print_('Batch Identifier: %s' % t[0])
 
     def do_start(self):
         ami_id = self.sd.get('ami_id')
@@ -119,15 +124,15 @@ class BS(object):
                     max_count=self.options.num_instances,
                     instance_type=instance_type,
                     security_groups=[security_group])
-        print 'Starting AMI: %s' % ami_id
-        print 'Reservation %s contains the following instances:' % r.id
+        print_('Starting AMI: %s' % ami_id)
+        print_('Reservation %s contains the following instances:' % r.id)
         for i in r.instances:
-            print '\t%s' % i.id
+            print_('\t%s' % i.id)
 
     def do_status(self):
         iq = self.sd.get_obj('input_queue')
         if iq:
-            print 'The input_queue (%s) contains approximately %s messages' % (iq.id, iq.count())
+            print_('The input_queue (%s) contains approximately %s messages' % (iq.id, iq.count()))
         ob = self.sd.get_obj('output_bucket')
         ib = self.sd.get_obj('input_bucket')
         if ob:
@@ -136,7 +141,7 @@ class BS(object):
             total = 0
             for k in ob:
                 total += 1
-            print 'The output_bucket (%s) contains %d keys' % (ob.name, total)
+            print_('The output_bucket (%s) contains %d keys' % (ob.name, total))
 
     def do_retrieve(self):
         if not self.options.path:
@@ -151,10 +156,10 @@ class BS(object):
     def do_batches(self):
         d = self.sd.get_obj('output_domain')
         if d:
-            print 'Available Batches:'
+            print_('Available Batches:')
             rs = d.query("['type'='Batch']")
             for item in rs:
-                print '  %s' % item.name
+                print_('  %s' % item.name)
         else:
             self.parser.error('No output_domain specified for service')
             

@@ -31,7 +31,7 @@ from boto.pyami.installers.ubuntu.installer import Installer
 import os
 import boto
 from boto.utils import ShellCommand
-from ConfigParser import SafeConfigParser
+from six.moves.configparser import SafeConfigParser
 import time
 
 ConfigSection = """

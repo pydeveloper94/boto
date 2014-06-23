@@ -21,13 +21,14 @@
 # IN THE SOFTWARE.
 
 import os
+import six
 
 class Converter(object):
 
     @classmethod
     def convert_string(cls, param, value):
         # TODO: could do length validation, etc. here
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             raise ValueError
         return value
 

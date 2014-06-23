@@ -22,17 +22,18 @@
 # IN THE SOFTWARE.
 
 from __future__ import with_statement
+import base64
+import binascii
 import errno
 import hashlib
+import math
 import mimetypes
 import os
 import re
 import rfc822
-import StringIO
-import base64
-import binascii
-import math
-import urllib
+import six
+from six.moves import StringIO, urllib
+import sys
 import boto.utils
 from boto.exception import BotoClientError
 from boto.exception import StorageDataError
@@ -274,7 +275,7 @@ class Key(object):
             response_headers = self.resp.msg
             self.metadata = boto.utils.get_aws_metadata(response_headers,
                                                         provider)
-            for name, value in response_headers.items():
+            for name, value in six.iteritems(response_headers):
                 # To get correct size for Range GETs, use Content-Range
                 # header if one was returned. If not, use Content-Length
                 # header.
@@ -370,6 +371,8 @@ class Key(object):
             self.close()
             raise StopIteration
         return data
+
+    __next__ = next
 
     def read(self, size=0):
         self.open_read()
@@ -1371,7 +1374,7 @@ class Key(object):
             be encrypted on the server-side by S3 and will be stored
             in an encrypted form while at rest in S3.
         """
-        if isinstance(string_data, unicode):
+        if isinstance(string_data, six.text_type):
             string_data = string_data.encode("utf-8")
         fp = StringIO.StringIO(string_data)
         r = self.set_contents_from_file(fp, headers, replace, cb, num_cb,
@@ -1461,7 +1464,7 @@ class Key(object):
         if response_headers:
             for key in response_headers:
                 query_args.append('%s=%s' % (
-                    key, urllib.quote(response_headers[key])))
+                    key, urllib.parse.quote(response_headers[key])))
         query_args = '&'.join(query_args)
         self.open('r', headers, query_args=query_args,
                   override_num_retries=override_num_retries)
@@ -1497,7 +1500,8 @@ class Key(object):
                     if i == cb_count or cb_count == -1:
                         cb(data_len, cb_size)
                         i = 0
-        except IOError, e:
+        except IOError:
+            e = sys.exc_info()[1]
             if e.errno == errno.ENOSPC:
                 raise StorageDataError('Out of space for destination file '
                                        '%s' % fp.name)

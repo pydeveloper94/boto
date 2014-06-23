@@ -21,6 +21,8 @@
 # IN THE SOFTWARE.
 #
 import getopt
+import six
+from six import print_
 import sys
 import imp
 import time
@@ -68,7 +70,7 @@ SYNOPSIS
 """
 
 def usage():
-    print usage_string
+    print_(usage_string)
     sys.exit()
 
 def main():
@@ -124,14 +126,14 @@ def main():
     required = ['ami']
     for pname in required:
         if not params.get(pname, None):
-            print '%s is required' % pname
+            print_('%s is required' % pname)
             usage()
     if params['script_name']:
         # first copy the desired module file to S3 bucket
         if reload:
-            print 'Reloading module %s to S3' % params['script_name']
+            print_('Reloading module %s to S3' % params['script_name'])
         else:
-            print 'Copying module %s to S3' % params['script_name']
+            print_('Copying module %s to S3' % params['script_name'])
         l = imp.find_module(params['script_name'])
         c = boto.connect_s3()
         bucket = c.get_bucket(params['script_bucket'])
@@ -140,7 +142,7 @@ def main():
         params['script_md5'] = key.md5
     # we have everything we need, now build userdata string
     l = []
-    for k, v in params.items():
+    for k, v in six.iteritems(params):
         if v:
             l.append('%s=%s' % (k, v))
     c = boto.connect_ec2()
@@ -155,23 +157,23 @@ def main():
         r = img.run(user_data=s, key_name=params['keypair'],
                     security_groups=[params['group']],
                     max_count=params.get('num_instances', 1))
-        print 'AMI: %s - %s (Started)' % (params['ami'], img.location)
-        print 'Reservation %s contains the following instances:' % r.id
+        print_('AMI: %s - %s (Started)' % (params['ami'], img.location))
+        print_('Reservation %s contains the following instances:' % r.id)
         for i in r.instances:
-            print '\t%s' % i.id
+            print_('\t%s' % i.id)
         if wait:
             running = False
             while not running:
                 time.sleep(30)
                 [i.update() for i in r.instances]
                 status = [i.state for i in r.instances]
-                print status
+                print_(status)
                 if status.count('running') == len(r.instances):
                     running = True
             for i in r.instances:
-                print 'Instance: %s' % i.ami_launch_index
-                print 'Public DNS Name: %s' % i.public_dns_name
-                print 'Private DNS Name: %s' % i.private_dns_name
+                print_('Instance: %s' % i.ami_launch_index)
+                print_('Public DNS Name: %s' % i.public_dns_name)
+                print_('Private DNS Name: %s' % i.private_dns_name)
 
 if __name__ == "__main__":
     main()

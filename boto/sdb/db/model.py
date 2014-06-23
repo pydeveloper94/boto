@@ -19,6 +19,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
+import six
+import sys
+
 from boto.sdb.db.property import Property
 from boto.sdb.db.key import Key
 from boto.sdb.db.query import Query
@@ -36,12 +39,12 @@ class ModelMeta(type):
         from boto.sdb.db.manager import get_manager
 
         try:
-            if filter(lambda b: issubclass(b, Model), bases):
+            if [b for b in bases if issubclass(b, Model)]:
                 for base in bases:
                     base.__sub_classes__.append(cls)
                 cls._manager = get_manager(cls)
                 # look for all of the Properties and set their names
-                for key in dict.keys():
+                for key in six.iterkeys(dict):
                     if isinstance(dict[key], Property):
                         property = dict[key]
                         property.__property_config__(cls, key)
@@ -56,8 +59,8 @@ class ModelMeta(type):
             # Model class, defined below.
             pass
 
+
 class Model(object):
-    __metaclass__ = ModelMeta
     __consistent__ = False # Consistent is set off by default
     id = None
 
@@ -94,7 +97,7 @@ class Model(object):
     @classmethod
     def find(cls, limit=None, next_token=None, **params):
         q = Query(cls, limit=limit, next_token=next_token)
-        for key, value in params.items():
+        for key, value in six.iteritems(params):
             q.filter('%s =' % key, value)
         return q
 
@@ -110,7 +113,7 @@ class Model(object):
     def properties(cls, hidden=True):
         properties = []
         while cls:
-            for key in cls.__dict__.keys():
+            for key in six.iterkeys(cls.__dict__):
                 prop = cls.__dict__[key]
                 if isinstance(prop, Property):
                     if hidden or not prop.__class__.__name__.startswith('_'):
@@ -125,7 +128,7 @@ class Model(object):
     def find_property(cls, prop_name):
         property = None
         while cls:
-            for key in cls.__dict__.keys():
+            for key in six.iterkeys(cls.__dict__):
                 prop = cls.__dict__[key]
                 if isinstance(prop, Property):
                     if not prop.__class__.__name__.startswith('_') and prop_name == prop.name:
@@ -166,7 +169,8 @@ class Model(object):
                 # so if it fails we just revert to it's default value
                 try:
                     setattr(self, key, kw[key])
-                except Exception, e:
+                except Exception:
+                    e = sys.exc_info()[1]
                     boto.log.exception(e)
 
     def __repr__(self):
@@ -272,6 +276,8 @@ class Model(object):
             r = sc.find_subclass(name)
             if r is not None:
                 return r
+
+Model = six.add_metaclass(ModelMeta)(Model)
 
 class Expando(Model):
 

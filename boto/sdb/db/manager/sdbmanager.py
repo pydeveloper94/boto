@@ -19,10 +19,15 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
-import boto
+
+from itertools import starmap
 import re
-from boto.utils import find_class
+import six
+import sys
 import uuid
+
+import boto
+from boto.utils import find_class
 from boto.sdb.db.key import Key
 from boto.sdb.db.blob import Blob
 from boto.sdb.db.property import ListProperty, MapProperty
@@ -58,7 +63,10 @@ class SDBConverter(object):
         self.manager = manager
         self.type_map = {bool: (self.encode_bool, self.decode_bool),
                          int: (self.encode_int, self.decode_int),
-                         long: (self.encode_long, self.decode_long),
+        # This should be deprecated
+        # python 2.5 and up automatically converts ints to longs if needed
+        # and python 3.x removes long
+        #                long: (self.encode_long, self.decode_long),
                          float: (self.encode_float, self.decode_float),
                          self.model_class: (
                             self.encode_reference, self.decode_reference
@@ -106,7 +114,7 @@ class SDBConverter(object):
         return self.encode_map(prop, values)
 
     def encode_map(self, prop, value):
-        import urllib
+        from six.moves import urllib
         if value is None:
             return None
         if not isinstance(value, dict):
@@ -118,7 +126,8 @@ class SDBConverter(object):
                 item_type = self.model_class
             encoded_value = self.encode(item_type, value[key])
             if encoded_value is not None:
-                new_value.append('%s:%s' % (urllib.quote(key), encoded_value))
+                new_value.append('%s:%s' % (
+                    urllib.parse.quote(key), encoded_value))
         return new_value
 
     def encode_prop(self, prop, value):
@@ -143,7 +152,7 @@ class SDBConverter(object):
                     except:
                         k = v
                     dec_val[k] = v
-            value = dec_val.values()
+            value = list(six.itervalues(dec_val))
         return value
 
     def decode_map(self, prop, value):
@@ -158,11 +167,11 @@ class SDBConverter(object):
 
     def decode_map_element(self, item_type, value):
         """Decode a single element for a map"""
-        import urllib
+        from six.moves import urllib
         key = value
         if ":" in value:
             key, value = value.split(':', 1)
-            key = urllib.unquote(key)
+            key = urllib.parse.unquote(key)
         if self.model_class in item_type.mro():
             value = item_type(id=value)
         else:
@@ -193,12 +202,12 @@ class SDBConverter(object):
         return int(value)
 
     def encode_long(self, value):
-        value = long(value)
+        value = int(value)
         value += 9223372036854775808
         return '%020d' % value
 
     def decode_long(self, value):
-        value = long(value)
+        value = int(value)
         value -= 9223372036854775808
         return value
 
@@ -264,7 +273,7 @@ class SDBConverter(object):
         return float(mantissa + 'e' + exponent)
 
     def encode_datetime(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             return value
         if isinstance(value, datetime):
             return value.strftime(ISO8601)
@@ -285,11 +294,12 @@ class SDBConverter(object):
             else:
                 value = value.split("-")
                 return date(int(value[0]), int(value[1]), int(value[2]))
-        except Exception, e:
+        except Exception:
+            e = sys.exc_info()[1]
             return None
 
     def encode_date(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             return value
         return value.isoformat()
 
@@ -314,7 +324,8 @@ class SDBConverter(object):
             # TODO: Handle tzinfo
             raise TimeDecodeError("Can't handle timezone aware objects: %r" % value)
         tmp = value.split('.')
-        arg = map(int, tmp[0].split(':'))
+
+        arg = list(map(int, tmp[0].split(':')))
         if len(tmp) == 2:
             arg.append(int(tmp[1]))
         return time(*arg)
@@ -322,7 +333,7 @@ class SDBConverter(object):
     def encode_reference(self, value):
         if value in (None, 'None', '', ' '):
             return None
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             return value
         else:
             return value.id
@@ -335,7 +346,7 @@ class SDBConverter(object):
     def encode_blob(self, value):
         if not value:
             return None
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             return value
 
         if not value.id:
@@ -364,7 +375,8 @@ class SDBConverter(object):
             bucket = s3.get_bucket(match.group(1), validate=False)
             try:
                 key = bucket.get_key(match.group(2))
-            except S3ResponseError, e:
+            except S3ResponseError:
+                e = sys.exc_info()[1]
                 if e.reason != "Forbidden":
                     raise
                 return None
@@ -375,26 +387,30 @@ class SDBConverter(object):
         else:
             return None
 
+    ##################
+    ## These methods will probably need to be reimplemented to be python2/3
+    ## compatible
     def encode_string(self, value):
         """Convert ASCII, Latin-1 or UTF-8 to pure Unicode"""
         if not isinstance(value, str):
             return value
         try:
-            return unicode(value, 'utf-8')
+            return six.u(value).encode('utf-8')
         except:
             # really, this should throw an exception.
             # in the interest of not breaking current
             # systems, however:
             arr = []
             for ch in value:
-                arr.append(unichr(ord(ch)))
-            return u"".join(arr)
+                arr.append(six.unichr(ord(ch)))
+            return six.u("").join(arr)
 
     def decode_string(self, value):
         """Decoding a string is really nothing, just
         return the value as-is"""
         return value
-
+    ##
+    ################
 
 class SDBManager(object):
 
@@ -490,7 +506,8 @@ class SDBManager(object):
                         value = prop.make_value_from_datastore(value)
                         try:
                             setattr(obj, prop.name, value)
-                        except Exception, e:
+                        except Exception:
+                            e = sys.exc_info()[1]
                             boto.log.exception(e)
             obj._loaded = True
 
@@ -581,7 +598,7 @@ class SDBManager(object):
                 order_by_filtered = True
             query_parts.append("(%s)" % select)
 
-        if isinstance(filters, basestring):
+        if isinstance(filters, six.string_types):
             query = "WHERE %s AND `__type__` = '%s'" % (filters, cls.__name__)
             if order_by in ["__id__", "itemName()"]:
                 query += " ORDER BY itemName() %s" % order_by_method
@@ -600,7 +617,7 @@ class SDBManager(object):
                 property = cls.find_property(name)
                 if name == order_by:
                     order_by_filtered = True
-                if types.TypeType(value) == types.ListType:
+                if types.TypeType(value) == list:
                     filter_parts_sub = []
                     for val in value:
                         val = self.encode_value(property, val)
@@ -621,7 +638,7 @@ class SDBManager(object):
 
 
         type_query = "(`__type__` = '%s'" % cls.__name__
-        for subclass in self._get_all_decendents(cls).keys():
+        for subclass in six.iterkeys(self._get_all_decendents(cls)):
             type_query += " or `__type__` = '%s'" % subclass
         type_query += ")"
         query_parts.append(type_query)
@@ -674,7 +691,7 @@ class SDBManager(object):
             if property.unique:
                 try:
                     args = {property.name: value}
-                    obj2 = obj.find(**args).next()
+                    obj2 = six.advance_iterator(obj.find(**args))
                     if obj2.id != obj.id:
                         raise SDBPersistenceError("Error: %s must be unique!" % property.name)
                 except(StopIteration):
@@ -701,7 +718,7 @@ class SDBManager(object):
         if prop.unique:
             try:
                 args = {prop.name: value}
-                obj2 = obj.find(**args).next()
+                obj2 = six.advance_iterator(obj.find(**args))
                 if obj2.id != obj.id:
                     raise SDBPersistenceError("Error: %s must be unique!" % prop.name)
             except(StopIteration):

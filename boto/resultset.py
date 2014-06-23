@@ -145,8 +145,10 @@ class BooleanResult(object):
         else:
             return 'False'
 
-    def __nonzero__(self):
+    def __bool__(self):
         return self.status
+
+    __nonzero__ = __bool__
 
     def startElement(self, name, attrs, connection):
         return None

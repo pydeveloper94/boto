@@ -20,6 +20,9 @@
 # IN THE SOFTWARE.
 
 import xml.sax
+import six
+from six import print_
+import sys
 import threading
 import boto
 from boto import handler
@@ -174,15 +177,13 @@ class SDBConnection(AWSQueryConnection):
             params['Expected.1.Value'] = expected_value[1]
 
     def _build_batch_list(self, params, items, replace=False):
-        item_names = items.keys()
         i = 0
-        for item_name in item_names:
+        for item_name in six.iterkeys(items):
             params['Item.%d.ItemName' % i] = item_name
             j = 0
             item = items[item_name]
             if item is not None:
-                attr_names = item.keys()
-                for attr_name in attr_names:
+                for attr_name in six.iterkeys(item):
                     value = item[attr_name]
                     if isinstance(value, list):
                         for v in value:
@@ -235,9 +236,9 @@ class SDBConnection(AWSQueryConnection):
             requests made on this specific connection instance. It is by
             no means an account-wide estimate.
         """
-        print 'Total Usage: %f compute seconds' % self.box_usage
+        print_('Total Usage: %f compute seconds' % self.box_usage)
         cost = self.box_usage * 0.14
-        print 'Approximate Cost: $%f' % cost
+        print_('Approximate Cost: $%f' % cost)
 
     def get_domain(self, domain_name, validate=True):
         """
@@ -614,6 +615,7 @@ class SDBConnection(AWSQueryConnection):
         try:
             return self.get_list('Select', params, [('Item', self.item_cls)],
                              parent=domain)
-        except SDBResponseError, e:
+        except SDBResponseError:
+            e = sys.exc_info()[1]
             e.body = "Query: %s\n%s" % (query, e.body)
             raise e

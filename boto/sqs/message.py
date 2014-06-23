@@ -64,7 +64,8 @@ in the format in which it would be stored in SQS.
 """
 
 import base64
-import StringIO
+import six
+from six.moves import StringIO
 from boto.sqs.attributes import Attributes
 from boto.sqs.messageattributes import MessageAttributes
 from boto.exception import SQSDecodeError
@@ -205,7 +206,7 @@ class MHMessage(Message):
 
     def encode(self, value):
         s = ''
-        for item in value.items():
+        for item in six.iteritems(value):
             s = s + '%s: %s\n' % (item[0], item[1])
         return s
 
@@ -223,13 +224,13 @@ class MHMessage(Message):
         self.set_body(self._body)
 
     def keys(self):
-        return self._body.keys()
+        return list(self._body.keys())
 
     def values(self):
-        return self._body.values()
+        return list(self._body.values())
 
     def items(self):
-        return self._body.items()
+        return list(self._body.items())
 
     def has_key(self, key):
         return key in self._body

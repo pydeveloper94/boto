@@ -53,7 +53,7 @@ class TableBatchGenerator(object):
         if not self.table.name in res[six.u('UnprocessedKeys')]:
             return
 
-        keys = res[six.u(u'UnprocessedKeys')][self.table.name][six.u(u'Keys')]
+        keys = res[six.u('UnprocessedKeys')][self.table.name][six.u('Keys')]
 
         for key in keys:
             h = key[six.u('HashKeyElement')]

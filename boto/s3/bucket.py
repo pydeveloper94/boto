@@ -45,11 +45,10 @@ import boto.jsonresponse
 import boto.utils
 import xml.sax
 import xml.sax.saxutils
-import StringIO
-import urllib
 import re
 import base64
 from collections import defaultdict
+from six.moves import StringIO, urllib
 
 # as per http://goo.gl/BDuud (02/19/2011)
 
@@ -187,8 +186,8 @@ class Bucket(object):
         if version_id:
             query_args_l.append('versionId=%s' % version_id)
         if response_headers:
-            for rk, rv in response_headers.iteritems():
-                query_args_l.append('%s=%s' % (rk, urllib.quote(rv)))
+            for rk, rv in six.iteritems(response_headers):
+                query_args_l.append('%s=%s' % (rk, urllib.parse.quote(rv)))
 
         key, resp = self._get_key_internal(key_name, headers, query_args_l)
         return key
@@ -374,16 +373,16 @@ class Bucket(object):
         if initial_query_string:
             pairs.append(initial_query_string)
 
-        for key, value in params.items():
+        for key, value in six.iteritems(params):
             key = key.replace('_', '-')
             if key == 'maxkeys':
                 key = 'max-keys'
-            if isinstance(value, unicode):
+            if isinstance(value, six.text_type):
                 value = value.encode('utf-8')
             if value is not None and value != '':
                 pairs.append('%s=%s' % (
-                    urllib.quote(key),
-                    urllib.quote(str(value)
+                    urllib.parse.quote(key),
+                    urllib.parse.quote(str(value)
                 )))
 
         return '&'.join(pairs)
@@ -663,17 +662,17 @@ class Bucket(object):
 
         def delete_keys2(hdrs):
             hdrs = hdrs or {}
-            data = u"""<?xml version="1.0" encoding="UTF-8"?>"""
-            data += u"<Delete>"
+            data = six.u("""<?xml version="1.0" encoding="UTF-8"?>""")
+            data += six.u("<Delete>")
             if quiet:
-                data += u"<Quiet>true</Quiet>"
+                data += six.u("<Quiet>true</Quiet>")
             count = 0
             while count < 1000:
                 try:
-                    key = ikeys.next()
+                    key = six.advance_iterator(ikeys)
                 except StopIteration:
                     break
-                if isinstance(key, basestring):
+                if isinstance(key, six.string_types):
                     key_name = key
                     version_id = None
                 elif isinstance(key, tuple) and len(key) == 2:
@@ -693,11 +692,11 @@ class Bucket(object):
                     result.errors.append(error)
                     continue
                 count += 1
-                data += u"<Object><Key>%s</Key>" % xml.sax.saxutils.escape(key_name)
+                data += six.u("<Object><Key>%s</Key>" % xml.sax.saxutils.escape(key_name))
                 if version_id:
-                    data += u"<VersionId>%s</VersionId>" % version_id
-                data += u"</Object>"
-            data += u"</Delete>"
+                    data += six.u("<VersionId>%s</VersionId>" % version_id)
+                data += six.u("</Object>")
+            data += six.u("</Delete>")
             if count <= 0:
                 return False  # no more
             data = data.encode('utf-8')
@@ -851,7 +850,7 @@ class Bucket(object):
             acl = src_bucket.get_xml_acl(src_key_name)
         if encrypt_key:
             headers[provider.server_side_encryption_header] = 'AES256'
-        src = '%s/%s' % (src_bucket_name, urllib.quote(src_key_name))
+        src = '%s/%s' % (src_bucket_name, urllib.parse.quote(src_key_name))
         if src_version_id:
             src += '?versionId=%s' % src_version_id
         headers[provider.copy_source_header] = str(src)

@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
+import six
+from six import print_
 import sys
 import os
 import boto
@@ -47,10 +49,10 @@ def boto_except_hook(debugger_flag, debug_flag):
             else:
                 debugger.post_mortem(tb)
         elif debug_flag:
-            print traceback.print_tb(tb)
+            print_(traceback.print_tb(tb))
             sys.exit(1)
         else:
-            print value
+            print_(value)
             sys.exit(1)
 
     return excepthook
@@ -69,7 +71,7 @@ class Line(object):
 
     def print_it(self):
         if not self.printed:
-            print self.line
+            print_(self.line)
             self.printed = True
 
 class RequiredParamError(boto.exception.BotoClientError):
@@ -342,9 +344,9 @@ class AWSQueryRequest(object):
 
     def process_standard_options(self, options, args, d):
         if hasattr(options, 'help_filters') and options.help_filters:
-            print 'Available filters:'
+            print_('Available filters:')
             for filter in self.Filters:
-                print '%s\t%s' % (filter.name, filter.doc)
+                print_('%s\t%s' % (filter.name, filter.doc))
             sys.exit(0)
         if options.debug:
             self.args['debug'] = 2
@@ -358,7 +360,7 @@ class AWSQueryRequest(object):
             self.args['aws_secret_access_key'] = options.secret_key
         if options.version:
             # TODO - Where should the version # come from?
-            print 'version x.xx'
+            print_('version x.xx')
             exit(0)
         sys.excepthook = boto_except_hook(options.debugger,
                                           options.debug)
@@ -452,17 +454,20 @@ class AWSQueryRequest(object):
         try:
             response = self.main()
             self.cli_formatter(response)
-        except RequiredParamError, e:
-            print e
+        except RequiredParamError:
+            e = sys.exc_info()[1]
+            print_(e)
             sys.exit(1)
-        except self.ServiceClass.ResponseError, err:
-            print 'Error(%s): %s' % (err.error_code, err.error_message)
+        except self.ServiceClass.ResponseError:
+            err = sys.exc_info()[1]
+            print_('Error(%s): %s' % (err.error_code, err.error_message))
             sys.exit(1)
-        except boto.roboto.awsqueryservice.NoCredentialsError, err:
-            print 'Unable to find credentials.'
+        except boto.roboto.awsqueryservice.NoCredentialsError:
+            print_('Unable to find credentials.')
             sys.exit(1)
-        except Exception, e:
-            print e
+        except Exception:
+            e = sys.exc_info()[1]
+            print_(e)
             sys.exit(1)
 
     def _generic_cli_formatter(self, fmt, data, label=''):
@@ -483,7 +488,7 @@ class AWSQueryRequest(object):
                 if isinstance(item, dict):
                     for field_name in item:
                         line.append(item[field_name])
-                elif isinstance(item, basestring):
+                elif isinstance(item, six.string_types):
                     line.append(item)
                 line.print_it()
 

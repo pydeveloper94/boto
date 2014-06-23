@@ -22,6 +22,7 @@
 import boto.pyami.installers
 import os
 import os.path
+import six
 import stat
 import boto
 import random
@@ -43,7 +44,7 @@ class Installer(boto.pyami.installers.Installer):
             hour = str(random.randrange(24))
         fp = open('/etc/cron.d/%s' % name, "w")
         if env:
-            for key, value in env.items():
+            for key, value in six.iteritems(env):
                 fp.write('%s=%s\n' % (key, value))
         fp.write('%s %s %s %s %s %s %s\n' % (minute, hour, mday, month, wday, who, command))
         fp.close()

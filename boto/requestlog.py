@@ -1,7 +1,7 @@
 
 from datetime import datetime
 from threading import Thread
-import Queue
+from six.moves import queue as Queue
 
 from boto.utils import RequestHook
 
@@ -21,7 +21,7 @@ class RequestLogger(RequestHook):
         now = datetime.now()
         time = now.strftime('%Y-%m-%d %H:%M:%S')
         td = (now - request.start_time)
-        duration = (td.microseconds + long(td.seconds + td.days*24*3600) * 1e6) / 1e6
+        duration = (td.microseconds + int(td.seconds + td.days*24*3600) * 1e6) / 1e6
         
         # write output including timestamp, status code, response time, response size, request action
         self.request_log_queue.put("'%s', '%s', '%s', '%s', '%s'\n" % (time, response.status, duration, len, request.params['Action']))

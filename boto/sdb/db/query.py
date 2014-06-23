@@ -19,6 +19,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
+import six
+
 class Query(object):
     __local_iter__ = None
     def __init__(self, model_class, limit=None, next_token=None, manager=None):
@@ -41,7 +43,9 @@ class Query(object):
     def next(self):
         if self.__local_iter__ is None:
             self.__local_iter__ = self.__iter__()
-        return self.__local_iter__.next()
+        return six.advance_iterator(self.__local_iter__)
+
+    __next__ = next
 
     def filter(self, property_operator, value):
         self.filters.append((property_operator, value))

@@ -20,8 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-import uuid
 import hashlib
+import six
+import uuid
 
 from boto.connection import AWSQueryConnection
 from boto.regioninfo import RegionInfo
@@ -95,12 +96,12 @@ class SNSConnection(AWSQueryConnection):
       :param dictionary: dict - value of the serialized parameter
       :param name: name of the serialized parameter
       """
-      items = sorted(dictionary.items(), key=lambda x:x[0])
+      items = sorted(six.iteritems(dictionary), key=lambda x:x[0])
       for kv, index in zip(items, range(1, len(items)+1)):
-        key, value = kv
-        prefix = '%s.entry.%s' % (name, index)
-        params['%s.key' % prefix] = key
-        params['%s.value' % prefix] = value
+          key, value = kv
+          prefix = '%s.entry.%s' % (name, index)
+          params['%s.key' % prefix] = key
+          params['%s.value' % prefix] = value
 
     def _required_auth_capability(self):
         return ['hmac-v4']

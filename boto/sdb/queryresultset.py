@@ -19,6 +19,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
+import six
+
 def query_lister(domain, query='', max_items=None, attr_names=None):
     more_results = True
     num_results = 0
@@ -89,4 +91,6 @@ class SelectResultSet(object):
             more_results = self.next_token is not None
 
     def next(self):
-        return self.__iter__().next()
+        return six.advance_iterator(self.__iter__())
+
+    __next__ = next
